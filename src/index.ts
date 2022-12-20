@@ -4,40 +4,34 @@ export class Semaphore {
 	constructor(public count: number) {}
 
 	async acquire() {
-		return new Promise<() => void>(res => {
-			const task = () => {
+		const release = await new Promise<() => void>(resolve => {
+			this.#tasks.push(() => {
 				let released = false;
-				res(() => {
+				resolve(() => {
 					if (!released) {
 						released = true;
 						this.count++;
 						this.#sched();
 					}
 				});
-			};
+			});
 
-			this.#tasks.push(task);
 			queueMicrotask(() => {
 				this.#sched();
 			});
 		});
+
+		return release;
 	}
 
 	async use<T>(f: () => Promise<T>) {
-		return this.acquire()
-			.then(async release =>
-				f()
-					.then(res => {
-						release();
-						return res;
-					})
-					.catch(err => {
-						release();
+		const release = await this.acquire();
 
-						// eslint-disable-next-line @typescript-eslint/no-throw-literal
-						throw err;
-					}),
-			);
+		try {
+			return await f();
+		} finally {
+			release();
+		}
 	}
 
 	#sched() {
