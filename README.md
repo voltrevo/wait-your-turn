@@ -1,10 +1,10 @@
 # wait-your-turn
 
-Awaitable semaphore/mutex
+Awaitable semaphore/mutex.
 
 A semaphore implementation using ES6 promises and supporting 3 styles:
 
-* async/await style (needs typescript)
+* async/await style
 * thunk style (automatic acquire/release)
 * promise style
 
@@ -12,7 +12,7 @@ Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 
 ## Fork of await-semaphore
 
-This is a fork of [`await-semaphore`](https://www.npmjs.com/package/await-semaphore).
+This is a fork of [`await-semaphore`](https://www.npmjs.com/package/await-semaphore) by Emma Kuo.
 
 Changes:
 - Use `queueMicrotask` instead of `process.nextTick` for more portability and less polyfilling
@@ -38,7 +38,7 @@ Acquire the semaphore and returns a promise for the release function. Be sure to
 const release = await semaphore.acquire();
 
 try {
-  //critical section...
+  // critical section...
   await doSomething();
 } finally {
   release();
