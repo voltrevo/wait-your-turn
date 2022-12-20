@@ -65,7 +65,7 @@ semaphore.use(() => {
 An alias for `new Semaphore(1)`. Mutex has the same methods as Semaphore.
 
 ```javascript
-import {Mutex} from 'await-semaphore';
+import {Mutex} from 'wait-your-turn';
 
 var mutex = new Mutex();
 ```
