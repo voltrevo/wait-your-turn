@@ -1,46 +1,29 @@
 export class Semaphore {
-	private readonly tasks: Array<() => void> = [];
-	count: number;
+	#tasks: Array<() => void> = [];
 
-	constructor(count: number) {
-		this.count = count;
-	}
+	constructor(public count: number) {}
 
-	private sched() {
-		if (this.count > 0 && this.tasks.length > 0) {
-			this.count--;
-			const next = this.tasks.shift();
-			if (next === undefined) {
-				throw 'Unexpected undefined value in tasks list';
-			}
-
-			next();
-		}
-	}
-
-	public async acquire() {
-		return new Promise<() => void>((res, rej) => {
+	async acquire() {
+		return new Promise<() => void>(res => {
 			const task = () => {
 				let released = false;
 				res(() => {
 					if (!released) {
 						released = true;
 						this.count++;
-						this.sched();
+						this.#sched();
 					}
 				});
 			};
 
-			this.tasks.push(task);
-			if (process && process.nextTick) {
-				process.nextTick(this.sched.bind(this));
-			} else {
-				setImmediate(this.sched.bind(this));
-			}
+			this.#tasks.push(task);
+			queueMicrotask(() => {
+				this.#sched();
+			});
 		});
 	}
 
-	public async use<T>(f: () => Promise<T>) {
+	async use<T>(f: () => Promise<T>) {
 		return this.acquire()
 			.then(async release =>
 				f()
@@ -50,9 +33,23 @@ export class Semaphore {
 					})
 					.catch(err => {
 						release();
+
+						// eslint-disable-next-line @typescript-eslint/no-throw-literal
 						throw err;
 					}),
 			);
+	}
+
+	#sched() {
+		if (this.count > 0 && this.#tasks.length > 0) {
+			this.count--;
+			const next = this.#tasks.shift();
+			if (next === undefined) {
+				throw new Error('Unexpected undefined value in tasks list');
+			}
+
+			next();
+		}
 	}
 }
 

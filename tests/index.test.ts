@@ -2,7 +2,9 @@ import {assert} from 'chai';
 import {Semaphore, Mutex} from '../src';
 
 export async function delay(ms: number) {
-	return new Promise<void>((res, rej) => setTimeout(res, ms));
+	return new Promise<void>(res => {
+		setTimeout(res, ms);
+	});
 }
 
 describe('util', () => {
@@ -22,7 +24,7 @@ describe('util', () => {
 				release();
 			};
 
-			await Promise.all([1, 2, 3, 4, 5].map(async i => task()));
+			await Promise.all([1, 2, 3, 4, 5].map(task));
 			assert.equal(ran, 5);
 		});
 
@@ -39,7 +41,7 @@ describe('util', () => {
 				ran++;
 			};
 
-			await Promise.all([1, 2, 3, 4, 5].map(async i => s.use(task)));
+			await Promise.all([1, 2, 3, 4, 5].map(async () => s.use(task)));
 			assert.equal(ran, 5);
 		});
 
@@ -48,7 +50,7 @@ describe('util', () => {
 			let running = 0;
 			let ran = 0;
 			let erred = 0;
-			const task = i => async () => {
+			const task = (i: number) => async () => {
 				assert(running <= 1);
 				running++;
 				await delay(10);
@@ -120,23 +122,29 @@ describe('util', () => {
 		it('double lock deadlocks', done => {
 			const m = new Mutex();
 			m.acquire()
-				.then(async r => m.acquire())
-				.then(r => {
+				.then(async () => m.acquire())
+				.then(() => {
 					assert(false);
 				})
 				.catch(done);
-			delay(10)
+			void delay(10)
 				.then(done);
 		});
 		it('double release ok', done => {
-			let release;
+			let release: () => void;
 			const m = new Mutex();
-			m.acquire()
-				.then(r => release = r)
-				.then(() => release())
-				.then(() => release());
-			m.acquire()
+			void m.acquire()
 				.then(r => {
+					release = r;
+				})
+				.then(() => {
+					release();
+				})
+				.then(() => {
+					release();
+				});
+			void m.acquire()
+				.then(() => {
 					done();
 				});
 		});
