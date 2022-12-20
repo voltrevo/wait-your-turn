@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { Semaphore, Mutex } from './index';
+import { Semaphore, Mutex } from '../src';
 
 export function delay(ms: number) {
     return new Promise<void>((res, rej) => setTimeout(res, ms));
