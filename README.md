@@ -24,39 +24,34 @@ Changes:
 
 Create a new semaphore with the given count.
 
-```javascript
-import { Semaphore } from 'wait-your-turn';
+```ts
+import {Semaphore} from 'wait-your-turn';
 
-var semaphore = new Semaphore(10);
+const semaphore = new Semaphore(10);
 ```
 
 ### semaphore.acquire(): Promise<() => void>
 
 Acquire the semaphore and returns a promise for the release function. Be sure to handle release for exception case.
 
-```javascript
-semaphore.acquire()
-.then(release => {
-    //critical section...
-    doSomething()
-    .then(res => {
-        //...
-        release();
-    })
-    .catch(err => {
-        //...
-        release();
-    });
-});
+```ts
+const release = await semaphore.acquire();
+
+try {
+  //critical section...
+  await doSomething();
+} finally {
+  release();
+}
 ```
 
 ### semaphore.use<T>(thunk: () => Promise<T>): Promise<T>
 
 Alternate method for using the semaphore by providing a thunk. This automatically handles acquire/release.
 
-```javascript
-semaphore.use(() => {
-    //critical section...
+```ts
+await semaphore.use(async () => {
+  // critical section...
 });
 ```
 
@@ -64,10 +59,10 @@ semaphore.use(() => {
 
 An alias for `new Semaphore(1)`. Mutex has the same methods as Semaphore.
 
-```javascript
+```ts
 import {Mutex} from 'wait-your-turn';
 
-var mutex = new Mutex();
+const mutex = new Mutex();
 ```
 
 ## Examples
@@ -76,39 +71,43 @@ Create a version of `fetch()` with concurrency limited to 10.
 
 ### async/await style (typescript)
 
-```typescript
-var semaphore = new Semaphore(10);
+```ts
+const semaphore = new Semaphore(10);
 
-async function niceFetch(url) {
-    var release = await semaphore.acquire();
-    var result = await fetch(url);
-    release();
+async function niceFetch(url: string) {
+  const release = await semaphore.acquire();
+
+  try {
+    const result = await fetch(url);
     return result;
+  } finally {
+    release();
+  }
 }
 ```
 
 ### thunk style (javascript)
 
-```javascript
-var semaphore = new Semaphore(10);
+```js
+const semaphore = new Semaphore(10);
 
 function niceFetch(url) {
-    return semaphore.use(() => fetch(url));
+  return semaphore.use(() => fetch(url));
 }
 ```
 
 ### promise style (javascript)
 
-```javascript
+```js
 var semaphore = new Semaphore(10);
 
 function niceFetch(url) {
-    return semaphore.acquire()
+  return semaphore.acquire()
     .then(release => {
-        return fetch(url)
+      return fetch(url)
         .then(result => {
-            release();
-            return result;
+          release();
+          return result;
         });
     });
 }
