@@ -1,8 +1,8 @@
 {
   "name": "wait-your-turn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Awaitable semaphore/mutex",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "test": "mocha dist/tests/**/*.test.js",
