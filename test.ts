@@ -1,5 +1,5 @@
-import * as assert from 'assert';
-import {Semaphore, Mutex} from './index';
+import { assert } from 'chai';
+import { Semaphore, Mutex } from './index';
 
 export function delay(ms: number) {
     return new Promise<void>((res, rej) => setTimeout(res, ms));

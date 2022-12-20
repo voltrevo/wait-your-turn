@@ -1,4 +1,5 @@
-# await-semaphore
+# wait-your-turn
+
 Awaitable semaphore/mutex
 
 A semaphore implementation using ES6 promises and supporting 3 styles:
@@ -9,6 +10,14 @@ A semaphore implementation using ES6 promises and supporting 3 styles:
 
 Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 
+## Fork of await-semaphore
+
+This is a fork of [`await-semaphore`](https://www.npmjs.com/package/await-semaphore).
+
+Changes:
+- Use `queueMicrotask` instead of `process.nextTick` for more portability and less polyfilling
+- Modernizations
+
 ## API
 
 ### new Semaphore(count: number)
@@ -16,7 +25,7 @@ Also includes `Mutex` as a convenience for `new Semaphore(1)`.
 Create a new semaphore with the given count.
 
 ```javascript
-import {Semaphore} from 'await-semaphore';
+import { Semaphore } from 'wait-your-turn';
 
 var semaphore = new Semaphore(10);
 ```
